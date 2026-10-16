@@ -1,23 +1,20 @@
-# Higher-Ed Model Validation Notes
+# Banner-Style Datamart SQL Patterns
 
-Practitioner notes on validating predictive models in higher education — where the data is longitudinal, the stakes are student outcomes, and the most common failure mode is **leakage through time**.
+Sanitized, reusable SQL patterns for the reporting logic every institutional research shop rebuilds: cohort definitions, term-to-term retention, DFW rates, and course outcomes.
 
-These notes are written from the perspective of an institutional research analyst who has to defend a model to a provost, not just to a cross-validation score.
+- **Generic schema.** Table and column names follow common higher-ed warehouse conventions (`student`, `enrollment`, `course_section`). No real institution names, no vendor-proprietary objects.
+- **Commented like production code.** Each query states its grain, its definitions, and its edge cases — because the next analyst inherits your WHERE clause.
+- **Dialect:** standard SQL (tested mentally against Postgres/Snowflake/Trino). Window functions used throughout.
 
-## Contents
+## Query index
 
-| Note | Topic |
-|---|---|
-| `temporal_validation.md` | Train/validate/test splits across terms, leakage examples, precision/recall tradeoffs, threshold selection. The core methodology. |
-| `leakage_examples.md` | A catalog of real-world leakage patterns in student-success modeling — what they look like and how to catch them. |
+| # | Query | Answers |
+|---|---|---|
+| 1 | `cohort_definition` | Who is in the Fall 2023 first-time freshman cohort? |
+| 2 | `term_to_term_retention` | What % persisted from each term to the next, by cohort? |
+| 3 | `fall_to_fall_retention` | The official retention KPI: fall entrants enrolled next fall. |
+| 4 | `dfw_rates` | D/F/Withdraw rates by college and course level. |
+| 5 | `course_outcomes` | Grade distribution and pass rates by course section. |
+| 6 | `stopout_vs_dropout` | Of non-returners, who came back within 2 terms? |
 
-## Key positions
-
-1. **Random k-fold CV is wrong for student data.** Terms are not exchangeable. Validate forward in time or your performance estimates are fiction.
-2. **Leakage is the default, not the exception.** Cumulative GPA, "ever" flags, and post-outcome features leak constantly. Assume guilt until proven innocent.
-3. **Thresholds are policy decisions.** A risk model's cutoff decides who gets an advisor's limited hours. Precision/recall is an ethics conversation, not just a metric.
-4. **Validate the deployment, not the lab.** Population stability, calibration drift, and subgroup performance matter more than a third decimal of AUC.
-
-## Scope
-
-Notes, not a library. No code here trains models — the companion repos (`higher-ed-retention-dashboard-demo`, `student-success-data-quality-checks`) carry the data and QA side. All examples use synthetic scenarios.
+See `schema.md` for the assumed table structures, then `reporting_patterns.sql`.
