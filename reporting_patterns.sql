@@ -8,7 +8,9 @@
    Q1. Cohort definition — Fall 2023 first-time freshman cohort
    Grain: one row per student. This CTE is the denominator for Q3.
    Edge cases: excludes dual-enrolled high-school students and non-degree
-   seekers, who would inflate the cohort and depress the rate.
+   seekers, who would inflate the cohort and depress the rate. Anchored to
+   census enrollment in the entry term so summer melt (admitted but never
+   enrolled) does not inflate the denominator.
    --------------------------------------------------------------------- */
 WITH cohort AS (
     SELECT s.student_id, s.entry_cohort, s.college, s.admit_type
@@ -16,6 +18,11 @@ WITH cohort AS (
     WHERE s.entry_cohort = 2023
       AND s.admit_type = 'First-time Freshman'
       AND s.student_type NOT IN ('Dual Enrolled', 'Non-degree')
+      AND EXISTS (
+          SELECT 1 FROM enrollment e
+          WHERE e.student_id = s.student_id
+            AND e.term = 'Fall 2023'  -- census enrollment, not just admission
+      )
 )
 SELECT * FROM cohort;
 
@@ -62,13 +69,21 @@ ORDER BY entry_cohort, term_seq;
    Grain: one row per cohort.
    Definition (IPEDS-style): % of the fall cohort enrolled the following
    fall, minus standard exclusions. Exclusions are kept visible in the
-   SELECT so leadership sees the adjusted denominator.
+   SELECT so leadership sees the adjusted denominator. The cohort CTE
+   mirrors Q1 (same filters, same census anchor) so the denominator is
+   consistent with the published cohort definition.
    --------------------------------------------------------------------- */
 WITH cohort AS (
-    SELECT student_id, entry_cohort
-    FROM student
-    WHERE entry_cohort = 2023
-      AND admit_type = 'First-time Freshman'
+    SELECT s.student_id, s.entry_cohort
+    FROM student s
+    WHERE s.entry_cohort = 2023
+      AND s.admit_type = 'First-time Freshman'
+      AND s.student_type NOT IN ('Dual Enrolled', 'Non-degree')
+      AND EXISTS (
+          SELECT 1 FROM enrollment e
+          WHERE e.student_id = s.student_id
+            AND e.term = 'Fall 2023'  -- census enrollment, not just admission
+      )
 ),
 exclusions AS (
     -- Standard exclusions: deceased, military call-up, church mission.
