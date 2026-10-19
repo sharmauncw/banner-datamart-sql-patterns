@@ -10,9 +10,17 @@ All queries in `reporting_patterns.sql` assume these structures. Adapt names to 
 | `entry_term` | varchar | e.g. `'Fall 2023'` — first term of enrollment |
 | `entry_cohort` | int | e.g. `2023` — entry year, never re-derived |
 | `admit_type` | varchar | `'First-time Freshman'`, `'Transfer'`, … |
+| `student_type` | varchar | `'Degree-seeking'`, `'Dual Enrolled'`, `'Non-degree'`, … |
 | `college` | varchar | College of primary major at entry |
 | `first_gen_flag` | boolean | |
 | `pell_flag` | boolean | |
+
+## student_exclusion
+
+| Column | Type | Notes |
+|---|---|---|
+| `student_id` | varchar | FK → student |
+| `exclusion_type` | varchar | `'Deceased'`, `'Military'`, `'Religious Mission'` — IPEDS retention exclusions |
 
 ## enrollment (student-term grain)
 
